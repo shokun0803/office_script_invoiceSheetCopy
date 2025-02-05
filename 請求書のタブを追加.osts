@@ -1,0 +1,35 @@
+function main(workbook: ExcelScript.Workbook, workMinutes:number) {
+    // 「原本」シートをコピーして新しいシートを作成
+    const originalSheet = workbook.getWorksheet("原本");
+    const newSheet = originalSheet.copy(ExcelScript.WorksheetPositionType.after, originalSheet);
+
+    // 新しいシートの名前を「202501」に変更
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    newSheet.setName(`${year}${month}`);
+
+    // 翌月の最初の月曜日を計算
+    const nextMonth = new Date(year, date.getMonth() + 1, 1);
+    let firstMonday: Date | undefined;
+    for (let i = 1; i <= 7; i++) {
+        nextMonth.setDate(i);
+        if (nextMonth.getDay() === 1) {
+            firstMonday = nextMonth;
+            break;
+        }
+    }
+
+    // 和暦の日付表示を作成
+    const eraYear = year - 2018; // 令和元年は2019年
+    const formattedDate = `令和 ${eraYear} 年 ${firstMonday.getMonth() + 1}月 ${firstMonday.getDate()}日`;
+
+    // セル「F1」に和暦の日付を入力
+    newSheet.getRange("F1").setValue(formattedDate);
+
+    // 時間単価を変数に代入
+    const hourlyRate = 2500;
+
+    // セル「G29」に計算式を入力
+    newSheet.getRange("G29").setFormula(`=${hourlyRate}*${workMinutes}`);
+}
